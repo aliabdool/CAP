@@ -1,14 +1,29 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+const getApiKey = () => {
+  try {
+    // Safely attempt to access process.env. 
+    // In some environments, accessing 'process' when it's not defined throws an error.
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env.API_KEY || '';
+    }
+  } catch (e) {
+    console.warn("Could not access process.env");
+  }
+  return '';
+};
 
 export const askSustainabilityAdvisor = async (question: string): Promise<string> => {
+  const apiKey = getApiKey();
+
   if (!apiKey) {
-    return "API Key is missing. Please configure the environment variable.";
+    return "The AI Advisor is currently offline (Missing API Key). Please check your configuration.";
   }
 
   try {
+    // Initialize the client strictly within the function scope
+    const ai = new GoogleGenAI({ apiKey });
+    
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `You are the AI Sustainability Advisor for "Indi-Océan Collective". 
